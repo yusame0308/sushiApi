@@ -1,0 +1,83 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: sushiApi
+  description: Sushi API
+paths:
+  /sushi:
+    post:
+      description: sushiの新規作成
+      operationId: addSushi
+      requestBody:
+        description: 追加するsushi
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Sushi"
+      responses:
+        "200":
+          description: sushi response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sushi"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /sushi/{id}:
+    get:
+      description: sushiをidを指定して取得
+      operationId: findSushiById
+      parameters:
+        - name: id
+          in: path
+          description: 取得したいデータのid
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: sushi response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sushi"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    Sushi:
+      type: object
+      required:
+        - name
+        - price
+        - sozai
+      properties:
+        name:
+          type: string
+        price:
+          type: integer
+        sozai:
+          type: array
+          items:
+            type: string
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string

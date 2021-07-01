@@ -1,0 +1,57 @@
+{
+	"info": {
+		"_postman_id": "3ca5728e-9ee2-433b-9461-9c29dcba43d7",
+		"name": "/sushi",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "sushi POST",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"卵巻き\",\n    \"price\": 100,\n    \"sozai\": [\"たまご\", \"のり\", \"しゃり\"]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:1232/sushi",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1232",
+					"path": [
+						"sushi"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "sushi GET",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:1232/sushi/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1232",
+					"path": [
+						"sushi",
+						"1"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
