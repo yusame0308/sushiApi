@@ -83,7 +83,7 @@ func (p *Sushi) FindSushis(c echo.Context, params gen.FindSushisParams) error {
 		limit = int(*params.Limit)
 	}
 	m := new([]model.SushiData)
-	if err := p.db.Finds(&order, &limit, m); err != nil {
+	if err := p.db.Finds(order, limit, m); err != nil {
 		return sendError(c, http.StatusNotFound, err.Error())
 	}
 

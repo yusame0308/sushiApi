@@ -26,13 +26,13 @@ func NewBaseRepository() *BaseRepository {
 	return &BaseRepository{DB: db}
 }
 
-func (r BaseRepository) Finds(order *string, limit *int, dst interface{}) error {
+func (r BaseRepository) Finds(order string, limit int, dst interface{}) error {
 	tx := r.DB
-	if len(*order) > 0 {
-		tx = tx.Order(*order)
+	if len(order) > 0 {
+		tx = tx.Order(order)
 	}
-	if *limit > 0 {
-		tx = tx.Limit(*limit)
+	if limit > 0 {
+		tx = tx.Limit(limit)
 	}
 	if tx := tx.Find(dst); tx.Error != nil {
 		return tx.Error
