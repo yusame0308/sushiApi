@@ -21,6 +21,9 @@ import (
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
+	// (GET /sushi)
+	FindSushis(ctx echo.Context, params FindSushisParams) error
+
 	// (POST /sushi)
 	AddSushi(ctx echo.Context) error
 
@@ -31,6 +34,31 @@ type ServerInterface interface {
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler ServerInterface
+}
+
+// FindSushis converts echo context to params.
+func (w *ServerInterfaceWrapper) FindSushis(ctx echo.Context) error {
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params FindSushisParams
+	// ------------- Optional query parameter "asc" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "asc", ctx.QueryParams(), &params.Asc)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter asc: %s", err))
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.FindSushis(ctx, params)
+	return err
 }
 
 // AddSushi converts echo context to params.
@@ -86,6 +114,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
+	router.GET(baseURL+"/sushi", wrapper.FindSushis)
 	router.POST(baseURL+"/sushi", wrapper.AddSushi)
 	router.GET(baseURL+"/sushi/:id", wrapper.FindSushiById)
 
@@ -94,16 +123,18 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+xUzW4TMRB+lWrguOqGFnHYWyuB1AsgcaxyMOtJMlXWNrYDhGgPmyIVAVJRD61ASHDq",
-	"MeIBKH0Yk6iPgWwnaX62gkOP5BJnZvzNN983zgByWSgpUFgD2QBM3sGCheNDraX2B6WlQm0JQziXHP13",
-	"S+qCWciAhN3eggRsX2H8iW3UUCZQoDGsHaqnSWM1iTaUZQIaX/RII4dsP2Je1zfnYPL5AebWYz3GV896",
-	"pkPrhAQr6lokoDTli5kFZka+YQGKLBam9vY0wLRm/TXCoeeswwyujvacM+t2n7Qg2x/AXY0tyOBOeq18",
-	"OpU9nU9ZJqtjEl9V/cH9GtVXiBKvodUsfRmJlvSQHE2uSVmSArJIeGPn6Z7HJtsNovjYjiJI4CVqEwvv",
-	"bTY2G35EqVAwRZDBdggloJjtBM6pmVsmjV1vFtKuGk1Of1ydH/+++Dp59wkComa+ZI9DBjucR03iZGjs",
-	"ruT9uIrCogi4TKku5eFSemA8+GyX/enfJPeiLPO7urwYv//uqs9u+MEscIjqWt3DILdRUpjo0lajcWvM",
-	"bqQVqGzM+kLIt1iva2+tdXz7Na17Al8rzC3yDZzVlMnU6HRAvPTQbbzR7OEJcTc8mXw8Go++uOrMVefj",
-	"49Pxr7M13x+RiMbv9vd42CrNCrSoTXhGy+ARI+B9c9Vbd3jkDn+64aWrRuQvky/yewnJ9A8DQnzZzWRB",
-	"nr+/tOZ/7/3nTwAAAP//m6SR80MGAAA=",
+	"H4sIAAAAAAAC/+xUQW8TOxD+K9W8d1w1ee0Th721Eki9ABLHKgd3PUld7dqu7QAh2sOmqEEUqahSW0BI",
+	"9IAqIaSqJy5Q+mPcROVfIHuzSZpsGxAcOJBLHHvyzTfffDNtiEQiBUduNIRt0NE6JsQfbysllDtIJSQq",
+	"w9BfR4Ki+64LlRADITBuFhcgANOSmP/EBipIA0hQa9Lw0YNHbRTjDUjTABRuNplCCuFqjjmKrw3BxNoG",
+	"RsZh3cVHD5p6nU0T4iQpSxGAVCwafxljpsUT4qGYwUSX/ntwQZQirSnCPmeRoYAroz3kTOL4Xh3C1Tb8",
+	"q7AOIfxTGSlfGcheGVaZBpNlMjqp+q3/S1SfIMpoCa1a6sIYrwsHSVFHiknDBIcwJzy3dH/FYTMTe1Hc",
+	"3ZJkEMBDVDoP/G++Ol91JQqJnEgGISz6qwAkMeuec0UX5TfQTOfyr7azd/m+298/7e0e9L4eggdUxIWs",
+	"UAjhDuPUk9IeWZEEDSrtpbwK13/V/Xa0bbOPNnttOzs227HZB5tt22wHXLkQwmYTVQuCgWeA6Mh1z4s/",
+	"ZoI1IWIk3Ik5mSMnmSe4+Pypv396DXTMEmaugM8cmLTmeqel4Dpv+UK1mk8cN8i9fkTKmEVenMqGdoza",
+	"YxmGZr7JYoW/Jg2eBmXdmSsIgX+vk2ZsforTTVTyDVOSusnxscTIIJ3DUYwU+loTZSf9g9PL492Ls7f9",
+	"Zy+nTLREcw9BPh2ozbKgrd9WyGhsp2u5PD/rPT/KHaPHOOQTalQT019s+w90+4/vbhoMlkWlzWg6c2Mw",
+	"ajt7/Rfd3skbmx3a7HjW8lhurdBZ+6OY7UObvbPZU7vVtVtfbOfcZieMFmPudttoyv391W5eN/Ll27r2",
+	"t/fu8z0AAP//gyvjcocIAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
