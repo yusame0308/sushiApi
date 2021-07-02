@@ -7,7 +7,7 @@ services:
     container_name: sushiApi-mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: sushiApi
+      MYSQL_DATABASE: sushi
       MYSQL_USER: docker
       MYSQL_PASSWORD: docker
       TZ: "Asia/Tokyo"

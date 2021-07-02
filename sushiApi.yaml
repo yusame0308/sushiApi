@@ -5,6 +5,38 @@ info:
   description: Sushi API
 paths:
   /sushi:
+    get:
+      description: sushiを複数取得
+      operationId: findSushis
+      parameters:
+        - name: asc
+          in: query
+          description: 昇順にするかどうか
+          required: false
+          schema:
+            type: boolean
+        - name: limit
+          in: query
+          description: 取得する件数
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: sushi response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Sushi"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
     post:
       description: sushiの新規作成
       operationId: addSushi

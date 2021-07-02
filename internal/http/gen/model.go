@@ -24,9 +24,18 @@ type Sushi struct {
 	Id int64 `json:"id"`
 }
 
+// FindSushisParams defines parameters for FindSushis.
+type FindSushisParams struct {
+
+	// 昇順にするかどうか
+	Asc *bool `json:"asc,omitempty"`
+
+	// 取得する件数
+	Limit *int32 `json:"limit,omitempty"`
+}
+
 // AddSushiJSONBody defines parameters for AddSushi.
 type AddSushiJSONBody NewSushi
 
 // AddSushiJSONRequestBody defines body for AddSushi for application/json ContentType.
 type AddSushiJSONRequestBody AddSushiJSONBody
-

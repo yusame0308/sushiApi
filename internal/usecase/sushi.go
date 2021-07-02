@@ -3,21 +3,19 @@ package usecase
 import (
 	"encoding/json"
 	"net/http"
+	"sushiApi/internal/db/model"
+	"sushiApi/internal/db/repository"
 	"sushiApi/internal/http/gen"
-	"sushiApi/internal/repository"
 
 	"github.com/labstack/echo/v4"
-	"gorm.io/gorm"
 )
 
 type Sushi struct {
-	db *gorm.DB
+	db *repository.SushiData
 }
 
-func NewSushi(db *gorm.DB) *Sushi {
-	return &Sushi{
-		db: db,
-	}
+func NewSushi(db *repository.SushiData) *Sushi {
+	return &Sushi{db: db}
 }
 
 func (p *Sushi) AddSushi(c echo.Context) error {
@@ -32,7 +30,7 @@ func (p *Sushi) AddSushi(c echo.Context) error {
 		return sendError(c, http.StatusBadRequest, err.Error())
 	}
 	// Create
-	sushiData := &repository.SushiData{
+	sushiData := &model.SushiData{
 		Name:  newSushi.Name,
 		Price: newSushi.Price,
 		Sozai: sozaiString,
@@ -48,7 +46,7 @@ func (p *Sushi) AddSushi(c echo.Context) error {
 
 func (p *Sushi) FindSushiById(c echo.Context, id int64) error {
 	// データを取得
-	m := new(repository.SushiData)
+	m := new(model.SushiData)
 	if tx := p.db.First(m, id); tx.Error != nil {
 		return sendError(c, http.StatusNotFound, tx.Error.Error())
 	}
@@ -66,6 +64,47 @@ func (p *Sushi) FindSushiById(c echo.Context, id int64) error {
 		},
 	}
 	return c.JSON(http.StatusOK, sushi)
+}
+
+func (p *Sushi) FindSushis(c echo.Context, params gen.FindSushisParams) error {
+	// データを取得
+	var (
+		order string
+		limit int
+	)
+	if params.Asc != nil {
+		if *params.Asc {
+			order = "id ASC"
+		} else {
+			order = "id DESC"
+		}
+	}
+	if params.Limit != nil {
+		limit = int(*params.Limit)
+	}
+	m := new([]model.SushiData)
+	if err := p.db.Finds(&order, &limit, m); err != nil {
+		return sendError(c, http.StatusNotFound, err.Error())
+	}
+
+	var sushis []gen.Sushi
+	for _, sushiData := range *m {
+		// String to Array
+		sozaiArray, err := stringToArray(c, sushiData.Sozai)
+		if err != nil {
+			return sendError(c, http.StatusBadRequest, err.Error())
+		}
+		newSushi := gen.Sushi{
+			Id: sushiData.ID,
+			NewSushi: gen.NewSushi{
+				Name:  sushiData.Name,
+				Price: sushiData.Price,
+				Sozai: sozaiArray,
+			},
+		}
+		sushis = append(sushis, newSushi)
+	}
+	return c.JSON(http.StatusOK, sushis)
 }
 
 func arrayToString(c echo.Context, array []string) (string, error) {
