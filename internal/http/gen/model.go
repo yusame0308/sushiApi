@@ -39,4 +39,3 @@ type AddSushiJSONBody NewSushi
 
 // AddSushiJSONRequestBody defines body for AddSushi for application/json ContentType.
 type AddSushiJSONRequestBody AddSushiJSONBody
-

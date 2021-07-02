@@ -6,10 +6,11 @@
 package main
 
 import (
-	"github.com/google/wire"
 	"sushiApi/internal/db/repository"
-	"sushiApi/internal/http"
+	api "sushiApi/internal/http"
 	"sushiApi/internal/usecase"
+
+	"github.com/google/wire"
 )
 
 // Injectors from wire.go:
