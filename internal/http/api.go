@@ -18,6 +18,10 @@ func NewApi(db *gorm.DB) *Api {
 
 var _ gen.ServerInterface = (*Api)(nil)
 
+func (p *Api) FindSushis(ctx echo.Context, params gen.FindSushisParams) error {
+	return p.sushi.FindSushis(ctx, params)
+}
+
 func (p *Api) AddSushi(ctx echo.Context) error {
 	return p.sushi.AddSushi(ctx)
 }
