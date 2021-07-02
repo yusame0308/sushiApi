@@ -17,3 +17,6 @@ install-oapi-codegen:
 oapi-codegen:
 	oapi-codegen -generate "types" -package gen sushiApi.yaml > ./internal/http/gen/model.go
 	oapi-codegen -generate "server,spec" -package gen sushiApi.yaml > ./internal/http/gen/server.go
+
+wire:
+	go run github.com/google/wire/cmd/wire ./cmd/...

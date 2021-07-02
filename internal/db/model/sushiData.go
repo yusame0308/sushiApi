@@ -1,4 +1,4 @@
-package repository
+package model
 
 type SushiData struct {
 	ID    int64  `gorm:"primaryKey"`

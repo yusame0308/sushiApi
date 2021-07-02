@@ -1,7 +1,9 @@
 package main
 
-import api "sushiApi/internal/http"
-
 func main() {
-	api.Run()
+	// injectionなServerの取得
+	s := InitServer()
+
+	// サーバーの起動
+	s.Run()
 }
