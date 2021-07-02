@@ -14,7 +14,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Sushi"
+              $ref: "#/components/schemas/NewSushi"
       responses:
         "200":
           description: sushi response
@@ -56,6 +56,16 @@ paths:
 components:
   schemas:
     Sushi:
+      allOf:
+        - $ref: "#/components/schemas/NewSushi"
+        - type: object
+          required:
+            - id
+          properties:
+            id:
+              type: integer
+              format: int64
+    NewSushi:
       type: object
       required:
         - name

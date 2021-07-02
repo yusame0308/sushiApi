@@ -9,15 +9,23 @@ type Error struct {
 	Message string `json:"message"`
 }
 
-// Sushi defines model for Sushi.
-type Sushi struct {
+// NewSushi defines model for NewSushi.
+type NewSushi struct {
 	Name  string   `json:"name"`
 	Price int      `json:"price"`
 	Sozai []string `json:"sozai"`
 }
 
+// Sushi defines model for Sushi.
+type Sushi struct {
+	// Embedded struct due to allOf(#/components/schemas/NewSushi)
+	NewSushi `yaml:",inline"`
+	// Embedded fields due to inline allOf schema
+	Id int64 `json:"id"`
+}
+
 // AddSushiJSONBody defines parameters for AddSushi.
-type AddSushiJSONBody Sushi
+type AddSushiJSONBody NewSushi
 
 // AddSushiJSONRequestBody defines body for AddSushi for application/json ContentType.
 type AddSushiJSONRequestBody AddSushiJSONBody

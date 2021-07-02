@@ -22,22 +22,28 @@ func NewSushi(db *gorm.DB) *Sushi {
 
 func (p *Sushi) AddSushi(c echo.Context) error {
 	// リクエストを取得
-	sushi := new(gen.Sushi)
-	if err := c.Bind(sushi); err != nil {
+	newSushi := new(gen.NewSushi)
+	if err := c.Bind(newSushi); err != nil {
 		return sendError(c, http.StatusBadRequest, "Invalid format")
 	}
 	// Array to String
-	sozaiString, err := arrayToString(c, sushi.Sozai)
+	sozaiString, err := arrayToString(c, newSushi.Sozai)
 	if err != nil {
-		return err
+		return sendError(c, http.StatusBadRequest, err.Error())
 	}
 	// Create
-	p.db.Create(&repository.SushiData{
-		Name:  sushi.Name,
-		Price: sushi.Price,
+	sushiData := &repository.SushiData{
+		Name:  newSushi.Name,
+		Price: newSushi.Price,
 		Sozai: sozaiString,
+	}
+	if tx := p.db.Create(sushiData); tx.Error != nil {
+		return sendError(c, http.StatusBadRequest, tx.Error.Error())
+	}
+	return c.JSON(http.StatusCreated, gen.Sushi{
+		Id:       sushiData.ID,
+		NewSushi: *newSushi,
 	})
-	return c.JSON(http.StatusCreated, sushi)
 }
 
 func (p *Sushi) FindSushiById(c echo.Context, id int64) error {
@@ -49,12 +55,15 @@ func (p *Sushi) FindSushiById(c echo.Context, id int64) error {
 	// String to Array
 	sozaiArray, err := stringToArray(c, m.Sozai)
 	if err != nil {
-		return err
+		return sendError(c, http.StatusBadRequest, err.Error())
 	}
 	sushi := &gen.Sushi{
-		Name:  m.Name,
-		Price: m.Price,
-		Sozai: sozaiArray,
+		Id: id,
+		NewSushi: gen.NewSushi{
+			Name:  m.Name,
+			Price: m.Price,
+			Sozai: sozaiArray,
+		},
 	}
 	return c.JSON(http.StatusOK, sushi)
 }
