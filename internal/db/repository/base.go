@@ -28,10 +28,10 @@ func NewBaseRepository() *BaseRepository {
 
 func (r BaseRepository) Finds(order *string, limit *int, dst interface{}) error {
 	tx := r.DB
-	if order != nil {
+	if len(*order) > 0 {
 		tx = tx.Order(*order)
 	}
-	if limit != nil {
+	if *limit > 0 {
 		tx = tx.Limit(*limit)
 	}
 	if tx := tx.Find(dst); tx.Error != nil {
