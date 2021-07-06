@@ -68,6 +68,45 @@ func (p *Sushi) FindSushiById(c echo.Context, id int64) error {
 	return c.JSON(http.StatusOK, sushi)
 }
 
+func (p *Sushi) FindSushis(c echo.Context, params gen.FindSushisParams) error {
+	// データを取得
+	m := new([]repository.SushiData)
+	tx := p.db
+	if params.Asc != nil {
+		if *params.Asc {
+			tx = tx.Order("id ASC")
+		}
+		if !*params.Asc {
+			tx = tx.Order("id DESC")
+		}
+	}
+	if params.Limit != nil {
+		tx = tx.Limit(int(*params.Limit))
+	}
+	if tx := tx.Find(m); tx.Error != nil {
+		return sendError(c, http.StatusNotFound, tx.Error.Error())
+	}
+
+	var sushis []gen.Sushi
+	for _, sushiData := range *m {
+		// String to Array
+		sozaiArray, err := stringToArray(c, sushiData.Sozai)
+		if err != nil {
+			return sendError(c, http.StatusBadRequest, err.Error())
+		}
+		newSushi := gen.Sushi{
+			Id: sushiData.ID,
+			NewSushi: gen.NewSushi{
+				Name:  sushiData.Name,
+				Price: sushiData.Price,
+				Sozai: sozaiArray,
+			},
+		}
+		sushis = append(sushis, newSushi)
+	}
+	return c.JSON(http.StatusOK, sushis)
+}
+
 func arrayToString(c echo.Context, array []string) (string, error) {
 	b, err := json.Marshal(array)
 	if err != nil {

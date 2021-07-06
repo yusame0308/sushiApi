@@ -6,7 +6,7 @@
 	},
 	"item": [
 		{
-			"name": "sushi POST",
+			"name": "sushi POST 卵巻き",
 			"event": [
 				{
 					"listen": "test",
@@ -54,7 +54,55 @@
 			"response": []
 		},
 		{
-			"name": "sushi GET",
+			"name": "sushi POST 納豆巻き",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"pm.test(\"sushi check\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.id).to.eql(2);",
+							"    pm.expect(jsonData.name).to.eql(\"納豆巻き\");",
+							"    pm.expect(jsonData.price).to.eql(150);",
+							"    pm.expect(jsonData.sozai).to.eql([\"納豆\",\"のり\",\"しゃり\"]);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"納豆巻き\",\n    \"price\": 150,\n    \"sozai\": [\"納豆\", \"のり\", \"しゃり\"]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:1232/sushi",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1232",
+					"path": [
+						"sushi"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "sushi GET by ID",
 			"event": [
 				{
 					"listen": "test",
@@ -88,6 +136,71 @@
 					"path": [
 						"sushi",
 						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "sushi GET",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"sushi check\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData[0]).to.eql({",
+							"        \"name\": \"納豆巻き\",",
+							"        \"price\": 150,",
+							"        \"sozai\": [",
+							"            \"納豆\",",
+							"            \"のり\",",
+							"            \"しゃり\"",
+							"        ],",
+							"        \"id\": 2",
+							"    })",
+							"    pm.expect(jsonData[1]).to.eql({",
+							"        \"name\": \"卵巻き\",",
+							"        \"price\": 100,",
+							"        \"sozai\": [",
+							"            \"たまご\",",
+							"            \"のり\",",
+							"            \"しゃり\"",
+							"        ],",
+							"        \"id\": 1",
+							"    })",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:1232/sushi?asc=false&limit=3",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "1232",
+					"path": [
+						"sushi"
+					],
+					"query": [
+						{
+							"key": "asc",
+							"value": "false"
+						},
+						{
+							"key": "limit",
+							"value": "3"
+						}
 					]
 				}
 			},
