@@ -35,9 +35,23 @@ var usecases = wire.NewSet(
 	usecase.NewSushi,
 )
 
-//// mock作るときはこれを使う
-//func InitMockServer() *internal.Server {
-//	wire.Build()
-//
-//	return &internal.Server{}
-//}
+// mock作るときはこれを使う
+func InitMockServer() *api.Server {
+	wire.Build(
+		// ↓DBにコネクションでリポジトリを作る
+		mockRepositories,
+		//　↓リポジトリを使ってusecaseを作る
+		usecases,
+		//　↓usecaseを使ってAPIを作る
+		api.NewApi,
+		//　↓APIを使ってserverを作る
+		api.NewServer,
+	)
+
+	// 最終的にserverを返す
+	return &api.Server{}
+}
+
+var mockRepositories = wire.NewSet(
+	repository.NewMockSushiData,
+)

@@ -1,8 +1,10 @@
 package api
 
 import (
+	"net/http"
 	"sushiApi/internal/http/gen"
 	"sushiApi/internal/usecase"
+	"sushiApi/pkg"
 
 	"github.com/labstack/echo/v4"
 )
@@ -18,13 +20,31 @@ func NewApi(sushi *usecase.Sushi) *Api {
 var _ gen.ServerInterface = (*Api)(nil)
 
 func (p *Api) FindSushis(ctx echo.Context, params gen.FindSushisParams) error {
-	return p.sushi.FindSushis(ctx, params)
+	res, err := p.sushi.FindSushis(params)
+	if err != nil {
+		return pkg.SendError(ctx, err)
+	}
+	return ctx.JSON(http.StatusOK, res)
 }
 
 func (p *Api) AddSushi(ctx echo.Context) error {
-	return p.sushi.AddSushi(ctx)
+	// リクエストを取得
+	newSushi := new(gen.NewSushi)
+	if err := ctx.Bind(newSushi); err != nil {
+		return pkg.SendError(ctx, pkg.NewBindError(err))
+	}
+	res, err := p.sushi.AddSushi(newSushi)
+	if err != nil {
+		return pkg.SendError(ctx, err)
+	}
+
+	return ctx.JSON(http.StatusOK, res)
 }
 
 func (p *Api) FindSushiById(ctx echo.Context, id int64) error {
-	return p.sushi.FindSushiById(ctx, id)
+	res, err := p.sushi.FindSushiById(id)
+	if err != nil {
+		return pkg.SendError(ctx, err)
+	}
+	return ctx.JSON(http.StatusOK, res)
 }

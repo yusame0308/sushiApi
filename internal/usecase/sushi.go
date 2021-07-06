@@ -6,55 +6,52 @@ import (
 	"sushiApi/internal/db/model"
 	"sushiApi/internal/db/repository"
 	"sushiApi/internal/http/gen"
+	"sushiApi/pkg"
 
-	"github.com/labstack/echo/v4"
+	"golang.org/x/xerrors"
 )
 
 type Sushi struct {
-	db *repository.SushiData
+	sd repository.SushiDataInterface
 }
 
-func NewSushi(db *repository.SushiData) *Sushi {
-	return &Sushi{db: db}
+func NewSushi(db repository.SushiDataInterface) *Sushi {
+	return &Sushi{sd: db}
 }
 
-func (p *Sushi) AddSushi(c echo.Context) error {
-	// リクエストを取得
-	newSushi := new(gen.NewSushi)
-	if err := c.Bind(newSushi); err != nil {
-		return sendError(c, http.StatusBadRequest, "Invalid format")
-	}
+func (p *Sushi) AddSushi(param *gen.NewSushi) (*gen.Sushi, error) {
 	// Array to String
-	sozaiString, err := arrayToString(c, newSushi.Sozai)
+	sozaiString, err := arrayToString(param.Sozai)
 	if err != nil {
-		return sendError(c, http.StatusBadRequest, err.Error())
+		return nil, pkg.NewHttpError(http.StatusBadRequest, pkg.BadRequestInvalidParam, err)
 	}
 	// Create
 	sushiData := &model.SushiData{
-		Name:  newSushi.Name,
-		Price: newSushi.Price,
+		Name:  param.Name,
+		Price: param.Price,
 		Sozai: sozaiString,
 	}
-	if tx := p.db.Create(sushiData); tx.Error != nil {
-		return sendError(c, http.StatusBadRequest, tx.Error.Error())
+	if tx := p.sd.Create(sushiData); tx.Error != nil {
+		return nil, pkg.NewHttpError(http.StatusBadRequest, pkg.BadRequestDatabaseTrouble, tx.Error)
 	}
-	return c.JSON(http.StatusCreated, gen.Sushi{
+	return &gen.Sushi{
 		Id:       sushiData.ID,
-		NewSushi: *newSushi,
-	})
+		NewSushi: *param,
+	}, nil
 }
 
-func (p *Sushi) FindSushiById(c echo.Context, id int64) error {
+func (p *Sushi) FindSushiById(id int64) (*gen.Sushi, error) {
 	// データを取得
 	m := new(model.SushiData)
-	if tx := p.db.First(m, id); tx.Error != nil {
-		return sendError(c, http.StatusNotFound, tx.Error.Error())
+	if tx := p.sd.First(m, id); tx.Error != nil {
+		return nil, pkg.NewHttpError(http.StatusNotFound, pkg.NotFoundNoData, tx.Error)
 	}
 	// String to Array
-	sozaiArray, err := stringToArray(c, m.Sozai)
+	sozaiArray, err := stringToArray(m.Sozai)
 	if err != nil {
-		return sendError(c, http.StatusBadRequest, err.Error())
+		return nil, pkg.NewHttpError(http.StatusBadRequest, pkg.BadRequestInvalidParam, err)
 	}
+
 	sushi := &gen.Sushi{
 		Id: id,
 		NewSushi: gen.NewSushi{
@@ -63,10 +60,10 @@ func (p *Sushi) FindSushiById(c echo.Context, id int64) error {
 			Sozai: sozaiArray,
 		},
 	}
-	return c.JSON(http.StatusOK, sushi)
+	return sushi, nil
 }
 
-func (p *Sushi) FindSushis(c echo.Context, params gen.FindSushisParams) error {
+func (p *Sushi) FindSushis(params gen.FindSushisParams) (*[]gen.Sushi, error) {
 	// データを取得
 	var (
 		order string
@@ -83,16 +80,16 @@ func (p *Sushi) FindSushis(c echo.Context, params gen.FindSushisParams) error {
 		limit = int(*params.Limit)
 	}
 	m := new([]model.SushiData)
-	if err := p.db.Finds(order, limit, m); err != nil {
-		return sendError(c, http.StatusNotFound, err.Error())
+	if err := p.sd.Finds(order, limit, m); err != nil {
+		return nil, pkg.NewHttpError(http.StatusBadRequest, pkg.BadRequestDatabaseTrouble, err)
 	}
 
 	var sushis []gen.Sushi
 	for _, sushiData := range *m {
 		// String to Array
-		sozaiArray, err := stringToArray(c, sushiData.Sozai)
+		sozaiArray, err := stringToArray(sushiData.Sozai)
 		if err != nil {
-			return sendError(c, http.StatusBadRequest, err.Error())
+			return nil, pkg.NewHttpError(http.StatusBadRequest, pkg.BadRequestInvalidParam, err)
 		}
 		newSushi := gen.Sushi{
 			Id: sushiData.ID,
@@ -104,23 +101,23 @@ func (p *Sushi) FindSushis(c echo.Context, params gen.FindSushisParams) error {
 		}
 		sushis = append(sushis, newSushi)
 	}
-	return c.JSON(http.StatusOK, sushis)
+	return &sushis, nil
 }
 
-func arrayToString(c echo.Context, array []string) (string, error) {
+func arrayToString(array []string) (string, error) {
 	b, err := json.Marshal(array)
 	if err != nil {
-		return "", sendError(c, http.StatusBadRequest, "Invalid format")
+		return "", xerrors.Errorf("Marshal failed: %+v", array)
 	}
 	return string(b), nil
 }
 
-func stringToArray(c echo.Context, str string) ([]string, error) {
+func stringToArray(str string) ([]string, error) {
 	b := []byte(str)
 	sl := make([]string, 0)
 	err := json.Unmarshal(b, &sl)
 	if err != nil {
-		return nil, sendError(c, http.StatusBadRequest, "Invalid format")
+		return nil, xerrors.Errorf("Unmarshal failed: %s", str)
 	}
 	return sl, nil
 }

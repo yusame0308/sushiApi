@@ -17,8 +17,17 @@ import (
 
 func InitServer() *api.Server {
 	baseRepository := repository.NewBaseRepository()
-	sushiData := repository.NewSushiData(baseRepository)
-	sushi := usecase.NewSushi(sushiData)
+	sushiDataInterface := repository.NewSushiData(baseRepository)
+	sushi := usecase.NewSushi(sushiDataInterface)
+	apiApi := api.NewApi(sushi)
+	server := api.NewServer(apiApi)
+	return server
+}
+
+// mock作るときはこれを使う
+func InitMockServer() *api.Server {
+	sushiDataInterface := repository.NewMockSushiData()
+	sushi := usecase.NewSushi(sushiDataInterface)
 	apiApi := api.NewApi(sushi)
 	server := api.NewServer(apiApi)
 	return server
@@ -29,3 +38,5 @@ func InitServer() *api.Server {
 var repositories = wire.NewSet(repository.NewSushiData)
 
 var usecases = wire.NewSet(usecase.NewSushi)
+
+var mockRepositories = wire.NewSet(repository.NewMockSushiData)

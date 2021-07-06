@@ -20,3 +20,10 @@ oapi-codegen:
 
 wire:
 	go run github.com/google/wire/cmd/wire ./cmd/...
+
+run-mock:
+	go build -ldflags="-w -s" -tags mock -o mock ./cmd
+	./mock
+run:
+	go build -ldflags="-w -s"  -o main ./cmd
+	./main
